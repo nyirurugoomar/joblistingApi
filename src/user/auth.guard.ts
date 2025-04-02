@@ -1,39 +1,44 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, ForbiddenException } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import * as dotenv from 'dotenv';
+import { Role } from './schemas/user.schema';
 
-dotenv.config(); // Load environment variables
 
 interface AuthenticatedRequest extends Request {
-  user?: any;
+  user?: any; 
 }
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(private jwtService: JwtService, private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
+    const requiredRoles = this.reflector.getAllAndOverride<Role[]>('roles', [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const authHeader = request.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Unauthorized - No Bearer Token');
+    if (!authHeader) {
+      throw new ForbiddenException('No token provided');
     }
 
     const token = authHeader.split(' ')[1];
+    const decoded = this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
 
-    try {
-      // Verify the token using the correct secret key
-      const decoded = this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
-
-      console.log('Decoded Token:', decoded);
-      request.user = decoded; // Attach user info to request
-
-      return true;
-    } catch (error) {
-      console.error('JWT Error:', error.message);
-      throw new UnauthorizedException('Invalid or expired token');
+    if (!decoded || !decoded.role) {
+      throw new ForbiddenException('Invalid token');
     }
+
+    request.user = decoded; 
+
+    if (!requiredRoles || requiredRoles.includes(decoded.role)) {
+      return true;
+    }
+
+    throw new ForbiddenException('You do not have permission to perform this action');
   }
 }
