@@ -5,10 +5,11 @@ import { UserSchema } from './schemas/user.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
 
+
 @Module({
   imports:[MongooseModule.forFeature([{name:'User',schema:UserSchema}]),
   JwtModule.register({
-    secret: 'env', 
+    secret: 'JWT_SECRET', 
     signOptions: { expiresIn: '1h' },
   })],
   providers: [UserService],

@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
+import { JobModule } from './job/job.module';
 @Module({
   imports: [UserModule,
     ConfigModule.forRoot({
@@ -11,6 +12,7 @@ import { ConfigModule } from '@nestjs/config';
       isGlobal: true,
      }),
      MongooseModule.forRoot(process.env.DB_URI),
+     JobModule,
   ],
   controllers: [AppController],
   providers: [AppService],
