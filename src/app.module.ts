@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { JobModule } from './job/job.module';
 import { JobApplicationModule } from './job-application/job-application.module';
 import { CloudinaryProvider } from './cloudinary/cloudinary.config';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -17,6 +18,8 @@ import { CloudinaryProvider } from './cloudinary/cloudinary.config';
     MongooseModule.forRoot(process.env.DB_URI), 
     JobModule,
     JobApplicationModule,
+    AdminModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService,CloudinaryProvider],

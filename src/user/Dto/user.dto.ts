@@ -9,7 +9,7 @@ export class SignupDto {
     @IsEmail()
     email: string;
 
-    @MinLength(10)
+    @IsNotEmpty()
     password: string;
 
     @IsEnum(Role)
